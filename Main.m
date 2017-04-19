@@ -36,37 +36,40 @@ J_L = J_arm+J_M;	% uhhhhhhhhhh
 Karm = ((2*pi*fc)^2)*J_L; % flexible link stiffness
 
 % Gains
-Kp = 1;
-Kd = 1;
+Kp = linspace(-5,20,10);
+Kd = linspace(-0.5,15,10);
+
+thetad = .45;
 
 
-%% Closed loop system
+figure;
+hold on
 
-num = Kp*Kg*Km;
+for i = 1:length(Kp)
+    for j = 1:length(Kd)
+        %% Closed loop system
+        num = Kp(i)*Kg*Km / (J*Rm);
+        den1 = 1;
+        den2 = ((Kg^2)*(Km^2) + Kd(j)*Kg*Km) / (J*Rm);
+        den3 = (Kp(i)*Kg*Km)/(J*Rm);
+        den = [den1 den2 den3];
+        sysTF = tf(num,den); % define transfer function
 
-den1 = 1;
-den2 = ((Kg^2)*(Km^2) + Kd*Kg*Km) / (J*Rm);
-den3 = (Kp*Kg*Km)/(J*Rm);
-den = [den1 den2 den3];
+        %% Step response
+        [x,t] = step(sysTF);
+        theta = 2*thetad*x; % thetad is desired arm angle
 
-sysTF = tf(num,den);
+        plot(t,theta);
 
-
-
-%% Step response
-[x,t] = step(sysTF);
-theta = 2*thetad*x; % thetad is desired arm angle
-figure(1);clf;
-plot(t,theta);
-
-
-
-
-function [] = transferFunc()
-
-
-
+        % Find Vin
+%         w = diff(theta)./diff(t);
+%         Vin = w.*Km;
+%         find(Vin>=5)
+    end
 end
+
+xlabel('Time (s)')
+ylabel('Theta (rad)')
 
 
 
